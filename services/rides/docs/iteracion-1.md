@@ -13,7 +13,7 @@ Fecha: 2026-10-31. Estado: **cerrada para demostración local**. Implementación
 - Contrato OpenAPI, esquema de eventos, página de bienvenida, salud, métricas y logs con correlación.
 - Maven Wrapper, Dockerfile, Compose y workflow de CI con pruebas de integración.
 
-La [guía del servicio](../README.md) contiene comandos y reglas. La [arquitectura](../../../docs/arquitectura.md) y los [ADR](../../../docs/adr/README.md) explican límites y decisiones.
+La [guía del servicio](../README.md) contiene comandos y reglas. La [arquitectura de Viajes](arquitectura.md) y los [ADR](../../../docs/adr/README.md) explican límites y decisiones.
 
 ## Evidencias de verificación
 
@@ -48,3 +48,10 @@ Esta evidencia no acredita la ejecución del workflow remoto, de las pruebas con
 | Operación fuera de demo | Definir secretos, acceso, despliegue, alertas, retención y capacidad de la outbox |
 
 Historial global y facturación/cobros quedan fuera del alcance de esta entrega. El cierre no cambia los límites de seguridad ni las garantías de entrega al menos una vez de los eventos.
+
+
+## Preparación de la PR hacia `develop`
+
+La refactorización `33a1b22` se integró en `feature/us-08-rides-microservice`. Se incorpora la base de `develop` conservando su infraestructura, el código de Reservas y su documentación global. La demo se selecciona explícitamente con `compose.rides.yaml`; no reemplaza `docker-compose.yml` ni se añade al reactor Maven raíz. La adaptación al Java 17 y al puerto 8107 del entorno común queda pendiente de una iteración de integración; esta PR conserva la demo Java 21 y el puerto 8082 ya verificados.
+
+Después de incorporar esa base se ejecutó de nuevo `mvnw.cmd -B -ntp clean verify` con Java 21: construcción correcta, 0 infracciones de estilo, 13 pruebas superadas y 1 prueba condicional de RabbitMQ omitida. También validaron `docker compose -f compose.rides.yaml config --quiet` y `docker compose -f docker-compose.yml config --quiet`. Estas comprobaciones no arrancan ni modifican los contenedores existentes.

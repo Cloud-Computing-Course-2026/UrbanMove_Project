@@ -23,6 +23,6 @@ Las transacciones y restricciones viven en la BD de Viajes. Mantener H2 y Postgr
 
 ## Verificación y seguimiento
 
-Evidencia: [pom.xml](../../services/rides/pom.xml), [configuración](../../services/rides/src/main/resources/application.yml), [migración](../../services/rides/src/main/resources/db/migration/V1__rides_and_outbox.sql) y [Compose](../../compose.yaml).
+Evidencia: [pom.xml](../../services/rides/pom.xml), [configuración](../../services/rides/src/main/resources/application.yml), [migración](../../services/rides/src/main/resources/db/migration/V1__rides_and_outbox.sql) y [Compose](../../compose.rides.yaml).
 
 El [workflow](../../.github/workflows/rides.yml) define pruebas en ambas bases. Registro basado en inspección; no acredita ejecución de CI. Revisar al introducir otro servicio o cambiar el motor de datos.

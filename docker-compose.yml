@@ -1,0 +1,106 @@
+services:
+  # ============================================================================
+  # Base de Datos PostgreSQL Unificada (15 Bases de Datos Oficiales Aisladas)
+  # Regla estricta: Aislamiento total de datos por microservicio (Database-per-Service)
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: urbanmove-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-urbanmove}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-urbanmove_secure_password}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./infra/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-urbanmove} -d urbanmove_reservations"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ============================================================================
+  # Broker de Mensajería: RabbitMQ (Bus de Eventos de Dominio)
+  # ============================================================================
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: urbanmove-rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-urbanmove}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-urbanmove_broker_pass}
+    ports:
+      - "5672:5672"     # Protocolo AMQP para microservicios
+      - "15672:15672"   # Consola Web de Administración
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ============================================================================
+  # Almacenamiento S3 Local: LocalStack (Data Lake S3: raw/, trusted/, curated/)
+  # ============================================================================
+  localstack:
+    image: localstack/localstack:3.8
+    container_name: urbanmove-localstack
+    restart: always
+    ports:
+      - "4566:4566"     # Endpoint unificado de AWS (S3, SQS)
+    environment:
+      - SERVICES=s3,sqs
+      - AWS_DEFAULT_REGION=${AWS_REGION:-eu-west-1}
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - ./infra/init-s3.sh:/etc/localstack/init/ready.d/init-s3.sh:ro
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # [US-07] Microservicio de Reservas (Java 17 + Spring Boot 3 - Puerto 8106)
+  # ============================================================================
+  reservations-service:
+    build:
+      context: .
+      dockerfile: services/reservations/Dockerfile
+    container_name: urbanmove-reservations
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8106:8106"
+    environment:
+      SERVER_PORT: 8106
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${RESERVATIONS_DB_NAME:-urbanmove_reservations}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-urbanmove}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-urbanmove_secure_password}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-urbanmove}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-urbanmove_broker_pass}
+      URBANMOVE_INTERNAL_AUTH_TOKEN: ${URBANMOVE_INTERNAL_AUTH_TOKEN:-urbanmove-internal-secret-token-2026}
+      URBANMOVE_RESERVATION_TTL_MINUTES: ${URBANMOVE_RESERVATION_TTL_MINUTES:-15}
+
+volumes:
+  postgres_data:
+    name: urbanmove_postgres_data
+  rabbitmq_data:
+    name: urbanmove_rabbitmq_data
+  localstack_data:
+    name: urbanmove_localstack_data
+
+networks:
+  default:
+    name: urbanmove-network

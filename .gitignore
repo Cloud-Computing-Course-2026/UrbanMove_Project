@@ -1,6 +1,110 @@
-**/target/
-**/data/
-.idea/
-*.iml
+# ==============================================================================
+# URBANMOVE - .gitignore Oficial del Monorepo Híbrido
+# ==============================================================================
+
+# --- Variables de entorno y secretos ---
 .env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# --- Java & Maven (services/) ---
+target/
+**/target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.war
+*.ear
+*.jar
+
+# --- Frontend & Node.js (clients/) ---
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+dist/
+**/dist/
+build/
+**/build/
+
+# --- Python & Serverless (lambdas/) ---
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyc
+*$py.class
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.egg-info/
+.eggs/
+wheels/
+*.egg
+
+# --- Terraform & Cloud Infrastructure (infra/) ---
+.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform.lock.hcl
+crash.log
+
+# --- Almacenamiento y volúmenes locales de Docker ---
+postgres_data/
+rabbitmq_data/
+minio_data/
+.docker-data/
+docker-data/
+*.db
+*.sqlite
+
+# --- IDEs y Editores de Código ---
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Eclipse / STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Antigravity / Gemini Workspace Cache
+.gemini/
+
+# --- Archivos del Sistema Operativo ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 *.log
+*.tmp
+
+# Persistent data for the standalone Rides demo
+**/data/

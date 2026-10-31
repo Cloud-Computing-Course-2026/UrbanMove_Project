@@ -9,7 +9,8 @@ Revisión inicial: 2026-10-31. Esta documentación describe el estado del reposi
 | [README raíz](../README.md) | Entrada al proyecto y arranque con Compose |
 | [README de Viajes](../services/rides/README.md) | Ejecución, API, ejemplos, pruebas y operación |
 | [Cierre de la primera iteración](../services/rides/docs/iteracion-1.md) | Alcance entregado, verificaciones observadas y pendientes |
-| [Arquitectura](arquitectura.md) | Componentes, datos, flujos, límites y trabajo pendiente |
+| [Arquitectura global](arquitectura.md) | Contexto del monorepo y entorno común |
+| [Arquitectura de Viajes](../services/rides/docs/arquitectura.md) | Componentes, datos, flujos, límites y pendientes de la demo |
 | [Registro ADR](adr/README.md) | Decisiones, motivación, alternativas y consecuencias |
 | [OpenAPI](../services/rides/src/main/resources/static/openapi.yaml) | Contrato HTTP de Viajes |
 | [Esquema de eventos](../services/rides/docs/events.schema.json) | Contrato de RideStarted y RideFinished |

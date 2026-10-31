@@ -1,9 +1,9 @@
 name: Rides CI
 on:
   push:
-    paths: ['services/rides/**', 'compose.yaml', '.github/workflows/rides.yml']
+    paths: ['services/rides/**', 'compose.rides.yaml', '.github/workflows/rides.yml']
   pull_request:
-    paths: ['services/rides/**', 'compose.yaml', '.github/workflows/rides.yml']
+    paths: ['services/rides/**', 'compose.rides.yaml', '.github/workflows/rides.yml']
 permissions:
   contents: read
 jobs:
@@ -53,7 +53,7 @@ jobs:
         with:
           name: rides-tests
           path: services/rides/target/surefire-reports
-      - run: docker compose config --quiet
+      - run: docker compose -f compose.rides.yaml config --quiet
       - run: docker build -t urbanmove/rides:ci services/rides
       - uses: actions/upload-artifact@v4
         with:
