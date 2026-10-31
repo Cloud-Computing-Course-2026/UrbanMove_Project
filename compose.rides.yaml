@@ -1,0 +1,59 @@
+services:
+  rides:
+    build: ./services/rides
+    ports:
+      - "127.0.0.1:8082:8082"
+    environment:
+      SERVER_ADDRESS: 0.0.0.0
+      SPRING_PROFILES_ACTIVE: demo
+      DB_URL: jdbc:postgresql://rides-db:5432/rides
+      DB_USER: rides
+      DB_PASSWORD: ${RIDES_DB_PASSWORD:-rides-local-demo}
+      RIDES_EVENTS_ENABLED: "true"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: urbanmove
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-urbanmove-local-demo}
+    depends_on:
+      rides-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8082/actuator/health/liveness || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 45s
+      retries: 5
+  rides-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: rides
+      POSTGRES_USER: rides
+      POSTGRES_PASSWORD: ${RIDES_DB_PASSWORD:-rides-local-demo}
+    volumes:
+      - rides-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rides -d rides"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: urbanmove
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-urbanmove-local-demo}
+    ports:
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+volumes:
+  rides-db:
+  rabbitmq:

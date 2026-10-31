@@ -11,3 +11,10 @@
 - **Bus de Mensajería**: RabbitMQ / AWS SQS para desacoplar transacciones mediante eventos de dominio.
 - **Data Lake (S3)**: Capas `raw/`, `trusted/` y `curated/` consumidas por Data Marts.
 - **Funciones Serverless**: Lambdas de expiración, mantenimiento, ingesta, marts y recolocación.
+
+
+## Demo de Viajes [US-08]
+
+Viajes incorpora una primera iteración autónoma con Java 21, H2/PostgreSQL y outbox RabbitMQ. Su ejecución está separada del entorno común mediante `compose.rides.yaml`; no sustituye la infraestructura ni integra todavía el servicio de Reservas. El puerto de la demo es 8082, mientras que la asignación prevista para la integración de Viajes es 8107.
+
+La [arquitectura detallada de Viajes](../services/rides/docs/arquitectura.md), su [guía de ejecución](../services/rides/README.md) y el [registro ADR](adr/README.md) documentan las garantías locales y los acuerdos de integración pendientes. El POM raíz conserva Java 17 y sus módulos actuales; Viajes se compila con su propio Maven Wrapper y JDK 21.

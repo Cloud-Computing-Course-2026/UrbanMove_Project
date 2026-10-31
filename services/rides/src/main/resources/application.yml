@@ -1,0 +1,56 @@
+server:
+  address: ${SERVER_ADDRESS:127.0.0.1}
+  port: ${PORT:8082}
+  shutdown: graceful
+spring:
+  application:
+    name: rides
+  profiles:
+    default: demo
+  datasource:
+    url: ${DB_URL:jdbc:h2:file:./data/rides;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    locations: classpath:db/migration
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    connection-timeout: 3s
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+logging:
+  structured:
+    format:
+      console: logstash
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    rabbit:
+      enabled: ${RIDES_EVENTS_ENABLED:false}
+rides:
+  events:
+    enabled: ${RIDES_EVENTS_ENABLED:false}
+    poll-ms: 1000
+  pricing:
+    unlock-fee: ${UNLOCK_FEE:0.50}
+    bicycle-per-minute: ${BICYCLE_PER_MINUTE:0.10}
+    scooter-per-minute: ${SCOOTER_PER_MINUTE:0.20}

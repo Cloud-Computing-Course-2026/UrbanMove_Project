@@ -1,0 +1,61 @@
+name: Rides CI
+on:
+  push:
+    paths: ['services/rides/**', 'compose.rides.yaml', '.github/workflows/rides.yml']
+  pull_request:
+    paths: ['services/rides/**', 'compose.rides.yaml', '.github/workflows/rides.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: rides_test
+          POSTGRES_USER: rides
+          POSTGRES_PASSWORD: ci-only-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U rides -d rides_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      rabbitmq:
+        image: rabbitmq:4-alpine
+        env:
+          RABBITMQ_DEFAULT_USER: urbanmove
+          RABBITMQ_DEFAULT_PASS: ci-only-rabbit
+        ports: ['5672:5672']
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: services/rides/pom.xml
+      - run: bash mvnw -B -ntp verify
+        working-directory: services/rides
+      - run: bash mvnw -B -ntp test
+        working-directory: services/rides
+        env:
+          TEST_DB_URL: jdbc:postgresql://localhost:5432/rides_test
+          TEST_DB_USER: rides
+          TEST_DB_PASSWORD: ci-only-password
+          RUN_RABBIT_TESTS: 'true'
+          RABBITMQ_USER: urbanmove
+          RABBITMQ_PASSWORD: ci-only-rabbit
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rides-tests
+          path: services/rides/target/surefire-reports
+      - run: docker compose -f compose.rides.yaml config --quiet
+      - run: docker build -t urbanmove/rides:ci services/rides
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rides-jar
+          path: services/rides/target/*.jar

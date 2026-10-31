@@ -1,0 +1,32 @@
+-- Simulations isolated from the actual operational tables. Never share these tables with other services.
+CREATE TABLE demo_zones (
+    id UUID PRIMARY KEY,
+    name VARCHAR(80) NOT NULL,
+    parking_allowed BOOLEAN NOT NULL
+);
+CREATE TABLE demo_vehicles (
+    id UUID PRIMARY KEY,
+    vehicle_type VARCHAR(20) NOT NULL,
+    zone_id UUID NOT NULL REFERENCES demo_zones(id),
+    state VARCHAR(30) NOT NULL,
+    ride_id UUID
+);
+CREATE TABLE demo_reservations (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    vehicle_id UUID NOT NULL REFERENCES demo_vehicles(id),
+    state VARCHAR(20) NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+INSERT INTO demo_zones VALUES
+('00000000-0000-0000-0000-000000000001', 'Triana', TRUE),
+('00000000-0000-0000-0000-000000000002', 'Las Canteras', TRUE),
+('00000000-0000-0000-0000-000000000003', 'Zona restringida', FALSE);
+INSERT INTO demo_vehicles VALUES
+('10000000-0000-0000-0000-000000000001', 'BICYCLE', '00000000-0000-0000-0000-000000000001', 'AVAILABLE', NULL),
+('10000000-0000-0000-0000-000000000002', 'SCOOTER', '00000000-0000-0000-0000-000000000001', 'RESERVED', NULL),
+('10000000-0000-0000-0000-000000000003', 'SCOOTER', '00000000-0000-0000-0000-000000000002', 'LOW_BATTERY', NULL);
+-- Fixed demo expiry, intentionally explicit. Real reservation expiry belongs to Reservations.
+INSERT INTO demo_reservations VALUES
+('20000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000001',
+ '10000000-0000-0000-0000-000000000002', 'CONFIRMED', '2099-01-01T00:00:00Z');

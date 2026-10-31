@@ -115,3 +115,27 @@ Esto levantará de forma orquestada:
 ### 3. Swagger UI / Documentación OpenAPI
 Accede a la documentación interactiva en:
 [http://localhost:8106/swagger-ui.html](http://localhost:8106/swagger-ui.html)
+
+
+## Microservicio de Viajes [US-08] (`services/rides`)
+
+La primera iteración de Viajes está disponible como **demo local independiente**, con inicio, consulta y finalización de viajes, idempotencia, coste preliminar y eventos mediante outbox. Disponibilidad, Reservas y Zonas se simulan dentro del perfil `demo`; todavía no se comunica con el servicio de Reservas del entorno común.
+
+Esta entrega conserva su compilación independiente con **Java 21**, Spring Boot 3.5 y Maven Wrapper. El POM raíz y el servicio de Reservas mantienen su configuración Java 17. Viajes no está añadido al reactor Maven ni al Compose común; integrar esas decisiones queda pendiente.
+
+Desde la raíz, para ejecutar exclusivamente la demo:
+
+```powershell
+docker compose -f compose.rides.yaml up --build -d
+```
+
+Página de bienvenida: `http://localhost:8082/`; contrato: `http://localhost:8082/openapi.yaml`. El puerto 8082 pertenece a esta demo; el puerto previsto de Viajes en el entorno común es 8107. El Compose de la demo publica RabbitMQ Management en 15672, por lo que no debe ejecutarse simultáneamente con el entorno común usando esos mismos puertos.
+
+El comando general `docker compose up -d` sigue utilizando `docker-compose.yml` y la infraestructura del equipo. `compose.rides.yaml` se selecciona siempre explícitamente para evitar sustituir ese entorno.
+
+- [Guía de Viajes, pruebas y solución de problemas](services/rides/README.md).
+- [Cierre de la primera iteración](services/rides/docs/iteracion-1.md).
+- [Arquitectura de la demo de Viajes](services/rides/docs/arquitectura.md).
+- [Índice de documentación](docs/README.md) y [registro ADR](docs/adr/README.md).
+
+Los cambios de comportamiento, contratos y decisiones deben actualizar los documentos afectados en la misma revisión.
