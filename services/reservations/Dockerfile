@@ -22,6 +22,6 @@ USER urbanmove:urbanmove
 
 COPY --from=builder /workspace/services/reservations/target/*.jar app.jar
 
-EXPOSE 8082
+EXPOSE 8106
 
 ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
