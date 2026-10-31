@@ -1,0 +1,149 @@
+openapi: 3.0.3
+info:
+  title: UrbanMove Rides
+  version: 0.1.0
+  description: >-
+    Primera iteracion local. El perfil demo simula Disponibilidad, Reservas y Zonas.
+    No hay autenticacion; userId es un dato de prueba. No exponer publicamente.
+servers:
+  - url: http://localhost:8082
+paths:
+  /rides:
+    post:
+      operationId: startRide
+      summary: Iniciar un viaje sobre un recurso disponible o reservado
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [userId, vehicleId]
+              properties:
+                userId: {type: string, format: uuid}
+                vehicleId: {type: string, format: uuid}
+                reservationId: {type: string, format: uuid, nullable: true}
+      responses:
+        '201':
+          description: Viaje creado, o estado actual del viaje de un reintento con la misma clave y datos
+          headers:
+            Location: {schema: {type: string}, description: URL del viaje}
+            X-Correlation-ID: {schema: {type: string}}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ride'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /rides/{id}:
+    get:
+      operationId: getRide
+      summary: Consultar un viaje por identificador
+      parameters:
+        - $ref: '#/components/parameters/RideId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Estado actual del viaje
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ride'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /rides/{id}/finish:
+    post:
+      operationId: finishRide
+      summary: Finalizar y calcular duracion y coste preliminar
+      parameters:
+        - $ref: '#/components/parameters/RideId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [destinationZoneId]
+              properties:
+                destinationZoneId: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Viaje finalizado, incluido reintento con la misma clave y destino
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ride'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+components:
+  parameters:
+    RideId:
+      name: id
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: >-
+        Clave estable por operacion logica. Espacios separados para inicio y fin, cada uno global al servicio.
+        Reintentar con los mismos datos devuelve el estado actual. Conflictos concurrentes pueden devolver
+        409; reintentar con la misma clave. Las claves se conservan mientras exista el viaje.
+      schema: {type: string, pattern: '^[A-Za-z0-9._:-]{1,128}$'}
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      description: Se genera uno si falta o no cumple el patron. Se devuelve en todas las respuestas.
+      schema: {type: string, pattern: '^[A-Za-z0-9._:-]{1,128}$'}
+  schemas:
+    Ride:
+      type: object
+      required: [id, userId, vehicleId, vehicleType, status, originZoneId, startedAt, currency, unlockFee, pricePerMinute]
+      properties:
+        id: {type: string, format: uuid}
+        userId: {type: string, format: uuid}
+        vehicleId: {type: string, format: uuid}
+        reservationId: {type: string, format: uuid, nullable: true}
+        vehicleType: {type: string, enum: [BICYCLE, SCOOTER]}
+        status: {type: string, enum: [IN_PROGRESS, FINISHED]}
+        originZoneId: {type: string, format: uuid}
+        destinationZoneId: {type: string, format: uuid, nullable: true}
+        startedAt: {type: string, format: date-time}
+        finishedAt: {type: string, format: date-time, nullable: true}
+        durationSeconds: {type: integer, format: int64, minimum: 0, nullable: true}
+        preliminaryCost: {type: number, minimum: 0, nullable: true}
+        currency: {type: string, enum: [EUR]}
+        unlockFee: {type: number, minimum: 0}
+        pricePerMinute: {type: number, minimum: 0}
+    Problem:
+      type: object
+      properties:
+        type: {type: string}
+        title: {type: string}
+        status: {type: integer}
+        detail: {type: string}
+        instance: {type: string}
+        correlationId: {type: string}
+  responses:
+    BadRequest:
+      description: JSON, UUID, cabecera o campos invalidos
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+    NotFound:
+      description: Viaje o vehiculo inexistente
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
+    Conflict:
+      description: Vehiculo ocupado, reserva invalida, zona prohibida, viaje finalizado o conflicto de idempotencia/concurrencia
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}

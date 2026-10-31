@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:urbanmove:rides:event:v1",
+  "title": "RideStarted / RideFinished v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["eventId", "timestamp", "source", "type", "schemaVersion", "correlationId", "data"],
+  "properties": {
+    "eventId": {"type": "string", "format": "uuid"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "source": {"const": "rides"},
+    "type": {"enum": ["RideStarted", "RideFinished"]},
+    "schemaVersion": {"const": 1},
+    "correlationId": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{1,128}$"},
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "userId", "vehicleId", "reservationId", "vehicleType", "status", "originZoneId", "destinationZoneId", "startedAt", "finishedAt", "durationSeconds", "preliminaryCost", "currency", "unlockFee", "pricePerMinute"],
+      "properties": {
+        "id": {"type": "string", "format": "uuid"},
+        "userId": {"type": "string", "format": "uuid"},
+        "vehicleId": {"type": "string", "format": "uuid"},
+        "reservationId": {"type": ["string", "null"], "format": "uuid"},
+        "vehicleType": {"enum": ["BICYCLE", "SCOOTER"]},
+        "status": {"enum": ["IN_PROGRESS", "FINISHED"]},
+        "originZoneId": {"type": "string", "format": "uuid"},
+        "destinationZoneId": {"type": ["string", "null"], "format": "uuid"},
+        "startedAt": {"type": "string", "format": "date-time"},
+        "finishedAt": {"type": ["string", "null"], "format": "date-time"},
+        "durationSeconds": {"type": ["integer", "null"], "minimum": 0},
+        "preliminaryCost": {"type": ["number", "null"], "minimum": 0},
+        "currency": {"const": "EUR"},
+        "unlockFee": {"type": "number", "minimum": 0},
+        "pricePerMinute": {"type": "number", "minimum": 0}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"type": {"const": "RideStarted"}}},
+      "then": {"properties": {"data": {"properties": {
+        "status": {"const": "IN_PROGRESS"},
+        "finishedAt": {"type": "null"},
+        "destinationZoneId": {"type": "null"},
+        "durationSeconds": {"type": "null"},
+        "preliminaryCost": {"type": "null"}
+      }}}},
+      "else": {"properties": {"data": {"properties": {
+        "status": {"const": "FINISHED"},
+        "finishedAt": {"type": "string"},
+        "destinationZoneId": {"type": "string"},
+        "durationSeconds": {"type": "integer"},
+        "preliminaryCost": {"type": "number"}
+      }}}}
+    }
+  ]
+}

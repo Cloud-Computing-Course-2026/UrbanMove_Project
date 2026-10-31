@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UrbanMove · Viajes</title>
+  <style>
+    body { margin: 0; background: #f4f7f6; color: #18332d; font: 1rem/1.6 system-ui, sans-serif; }
+    main { max-width: 48rem; margin: 8vh auto; padding: 2rem; }
+    h1 { line-height: 1.2; }
+    a { color: #08664e; text-underline-offset: .2em; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td { padding: .8rem; text-align: left; border-bottom: 1px solid #dbe5e1; }
+    code { overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>UrbanMove · Viajes</h1>
+    <p>Este microservicio permite iniciar, consultar y finalizar viajes.
+      Las operaciones se realizan mediante peticiones HTTP a la API.</p>
+    <ul>
+      <li><a href="openapi.yaml">Contrato de la API (OpenAPI YAML)</a></li>
+      <li><a href="actuator/health">Estado del servicio</a></li>
+    </ul>
+    <h2>Operaciones disponibles</h2>
+    <table>
+      <thead><tr><th scope="col">Método</th><th scope="col">Ruta</th><th scope="col">Operación</th></tr></thead>
+      <tbody>
+        <tr><td>POST</td><td><code>/rides</code></td><td>Iniciar un viaje</td></tr>
+        <tr><td>GET</td><td><code>/rides/{id}</code></td><td>Consultar un viaje</td></tr>
+        <tr><td>POST</td><td><code>/rides/{id}/finish</code></td><td>Finalizar un viaje</td></tr>
+      </tbody>
+    </table>
+    <p>Las peticiones POST requieren la cabecera <code>Idempotency-Key</code>
+      y un cuerpo JSON según el contrato de la API.</p>
+  </main>
+</body>
+</html>
