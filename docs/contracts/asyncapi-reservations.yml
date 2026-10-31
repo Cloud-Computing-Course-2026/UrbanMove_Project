@@ -1,0 +1,99 @@
+asyncapi: 2.6.0
+info:
+  title: URBANMOVE - Contrato de Eventos del Dominio de Reservas
+  version: 1.0.0
+  description: Eventos de dominio emitidos por el microservicio de reservas para la integración asíncrona (RabbitMQ / AWS SQS).
+
+channels:
+  urbanmove.events:
+    publish:
+      message:
+        oneOf:
+          - $ref: '#/components/messages/VehicleReserved'
+          - $ref: '#/components/messages/ReservationCancelled'
+          - $ref: '#/components/messages/ReservationExpired'
+
+components:
+  messages:
+    VehicleReserved:
+      name: VehicleReserved
+      title: Vehicle Reserved Event
+      summary: Emitido cuando la reserva se crea exitosamente sobre un recurso disponible.
+      payload:
+        type: object
+        required: [eventId, eventType, timestamp, reservationId, userId, vehicleId, expiresAt]
+        properties:
+          eventId:
+            type: string
+            format: uuid
+          eventType:
+            type: string
+            enum: [VehicleReserved]
+          timestamp:
+            type: string
+            format: date-time
+          reservationId:
+            type: integer
+          userId:
+            type: string
+          vehicleId:
+            type: string
+          resourceType:
+            type: string
+            enum: [BIKE, SCOOTER]
+          expiresAt:
+            type: string
+            format: date-time
+
+    ReservationCancelled:
+      name: ReservationCancelled
+      title: Reservation Cancelled Event
+      summary: Emitido cuando el usuario cancela voluntariamente su reserva.
+      payload:
+        type: object
+        required: [eventId, eventType, timestamp, reservationId, userId, vehicleId]
+        properties:
+          eventId:
+            type: string
+            format: uuid
+          eventType:
+            type: string
+            enum: [ReservationCancelled]
+          timestamp:
+            type: string
+            format: date-time
+          reservationId:
+            type: integer
+          userId:
+            type: string
+          vehicleId:
+            type: string
+          cancellationReason:
+            type: string
+
+    ReservationExpired:
+      name: ReservationExpired
+      title: Reservation Expired Event
+      summary: Emitido cuando la reserva es liberada automáticamente por timeout.
+      payload:
+        type: object
+        required: [eventId, eventType, timestamp, reservationId, vehicleId, expiredAt]
+        properties:
+          eventId:
+            type: string
+            format: uuid
+          eventType:
+            type: string
+            enum: [ReservationExpired]
+          timestamp:
+            type: string
+            format: date-time
+          reservationId:
+            type: integer
+          userId:
+            type: string
+          vehicleId:
+            type: string
+          expiredAt:
+            type: string
+            format: date-time

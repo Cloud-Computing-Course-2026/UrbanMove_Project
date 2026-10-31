@@ -1,0 +1,98 @@
+services:
+  # ============================================================================
+  # Base de Datos PostgreSQL Unificada (15 Bases de Datos Oficiales Aisladas)
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: urbanmove-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: urbanmove
+      POSTGRES_PASSWORD: urbanmove_secure_password
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./infra/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U urbanmove -d reservations_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ============================================================================
+  # Broker de Mensajería: RabbitMQ (Bus de Eventos de Dominio)
+  # ============================================================================
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: urbanmove-rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: urbanmove
+      RABBITMQ_DEFAULT_PASS: urbanmove_broker_pass
+    ports:
+      - "5672:5672"     # AMQP protocol
+      - "15672:15672"   # Management Web UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ============================================================================
+  # Almacenamiento de Objetos S3 Local: MinIO (Data Lake: raw, trusted, curated)
+  # ============================================================================
+  minio:
+    image: minio/minio:latest
+    container_name: urbanmove-minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadminpassword
+    ports:
+      - "9000:9000"     # API S3
+      - "9001:9001"     # Web Console
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # [US-07] Microservicio de Reservas (Java 17 + Spring Boot 3 - Puerto 8106)
+  # ============================================================================
+  reservations-service:
+    build:
+      context: ./services/reservations
+      dockerfile: Dockerfile
+    container_name: urbanmove-reservations
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8106:8106"
+    environment:
+      SERVER_PORT: 8106
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/reservations_db
+      SPRING_DATASOURCE_USERNAME: urbanmove
+      SPRING_DATASOURCE_PASSWORD: urbanmove_secure_password
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: urbanmove
+      SPRING_RABBITMQ_PASSWORD: urbanmove_broker_pass
+      URBANMOVE_INTERNAL_AUTH_TOKEN: urbanmove-internal-secret-token-2026
+      URBANMOVE_RESERVATION_TTL_MINUTES: 15
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  minio_data:

@@ -1,0 +1,29 @@
+server:
+  port: 8106
+
+spring:
+  application:
+    name: reservations-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/reservations_db}
+    username: ${SPRING_DATASOURCE_USERNAME:urbanmove}
+    password: ${SPRING_DATASOURCE_PASSWORD:urbanmove_secure_password}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:urbanmove}
+    password: ${SPRING_RABBITMQ_PASSWORD:urbanmove_broker_pass}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
