@@ -1,5 +1,11 @@
 package com.urbanmove.rides;
 
+import com.urbanmove.rides.dto.RideApi;
+import com.urbanmove.rides.exception.DomainException;
+import com.urbanmove.rides.messaging.EventTransport;
+import com.urbanmove.rides.messaging.outbox.OutboxPublisher;
+import com.urbanmove.rides.model.Ride;
+import com.urbanmove.rides.service.RideService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -199,7 +205,7 @@ class RidesIntegrationTest {
             service.start(new RideApi.StartRequest(UUID.randomUUID(), BIKE, null), key, "concurrency");
             return 1;
         } catch (DomainException ex) {
-            assertThat(ex.status.value()).isEqualTo(409);
+            assertThat(ex.getStatus().value()).isEqualTo(409);
             return 0;
         }
     }

@@ -1,5 +1,7 @@
-package com.urbanmove.rides;
+package com.urbanmove.rides.messaging.outbox;
 
+import com.urbanmove.rides.dto.RideApi;
+import com.urbanmove.rides.model.Ride;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Timestamp;
@@ -24,7 +26,7 @@ public class Outbox {
     public record DomainEvent(UUID eventId, Instant timestamp, String source, String type,
             int schemaVersion, String correlationId, RideApi.RideResponse data) { }
 
-    void append(String type, Ride ride, String correlationId) {
+    public void append(String type, Ride ride, String correlationId) {
         var event = new DomainEvent(UUID.randomUUID(), clock.instant(), "rides", type,
                 1, correlationId, RideApi.RideResponse.from(ride));
         try {

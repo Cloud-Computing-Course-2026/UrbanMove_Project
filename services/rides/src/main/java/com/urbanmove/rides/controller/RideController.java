@@ -1,5 +1,7 @@
-package com.urbanmove.rides;
+package com.urbanmove.rides.controller;
 
+import com.urbanmove.rides.dto.RideApi;
+import com.urbanmove.rides.service.RideService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import java.net.URI;

@@ -1,5 +1,8 @@
-package com.urbanmove.rides;
+package com.urbanmove.rides.integration.demo;
 
+import com.urbanmove.rides.exception.DomainException;
+import com.urbanmove.rides.integration.MobilityGateway;
+import com.urbanmove.rides.model.Ride;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;

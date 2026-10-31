@@ -25,6 +25,8 @@ flowchart LR
 
 `RideController` valida la entrada; `RideService` coordina las transacciones y reglas; `RideRepository` usa JPA para los viajes; `Outbox` y el adaptador demo usan JDBC. El puerto `MobilityGateway` delimita las dependencias de movilidad. Esto aporta un punto de sustitución, pero no implica una separación hexagonal completa: el servicio de aplicación depende directamente de Spring, persistencia y métricas.
 
+El código Java se organiza por responsabilidad bajo `com.urbanmove.rides`: `controller`, `dto`, `service`, `model`, `repository`, `exception`, `integration` (con `demo`), `messaging` (con `outbox`) y `observability`. `RidesApplication` permanece en la raíz para conservar el escaneo de Spring Boot. La entidad mantiene sus campos privados y expone métodos de inicio/finalización y lectura. Véase [ADR-0007](adr/0007-organizacion-paquetes.md) y la [distribución de clases](../services/rides/README.md#estructura-del-código).
+
 ## Propiedad de datos y entornos
 
 | Elemento | Estado y responsabilidad |

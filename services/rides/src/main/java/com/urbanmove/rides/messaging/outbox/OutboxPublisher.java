@@ -1,5 +1,6 @@
-package com.urbanmove.rides;
+package com.urbanmove.rides.messaging.outbox;
 
+import com.urbanmove.rides.messaging.EventTransport;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.sql.Timestamp;
 import java.time.Clock;

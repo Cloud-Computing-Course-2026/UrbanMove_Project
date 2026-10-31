@@ -1,5 +1,6 @@
-package com.urbanmove.rides;
+package com.urbanmove.rides.integration;
 
+import com.urbanmove.rides.model.Ride;
 import java.time.Instant;
 import java.util.UUID;
 

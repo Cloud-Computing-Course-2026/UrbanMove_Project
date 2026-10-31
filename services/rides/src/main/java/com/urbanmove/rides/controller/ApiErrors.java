@@ -1,5 +1,6 @@
-package com.urbanmove.rides;
+package com.urbanmove.rides.controller;
 
+import com.urbanmove.rides.exception.DomainException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -17,7 +18,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 public class ApiErrors {
     @ExceptionHandler(DomainException.class)
     ProblemDetail domain(DomainException ex, HttpServletRequest request) {
-        return problem(ex.status, ex.getMessage(), request);
+        return problem(ex.getStatus(), ex.getMessage(), request);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

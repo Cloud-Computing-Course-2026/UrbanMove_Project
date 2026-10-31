@@ -23,4 +23,4 @@ La demo es persistente y reproducible, pero sus garantías atómicas no represen
 
 ## Verificación y seguimiento
 
-Evidencia: [puerto](../../services/rides/src/main/java/com/urbanmove/rides/MobilityGateway.java), [adaptador](../../services/rides/src/main/java/com/urbanmove/rides/DemoMobilityGateway.java) y [perfil](../../services/rides/src/main/resources/application-demo.yml). Las [pruebas existentes](../../services/rides/src/test/java/com/urbanmove/rides/RidesIntegrationTest.java) comprueban reservas, zonas y rollback. Revisar antes de integrar el primer servicio remoto.
+Evidencia: [puerto](../../services/rides/src/main/java/com/urbanmove/rides/integration/MobilityGateway.java), [adaptador](../../services/rides/src/main/java/com/urbanmove/rides/integration/demo/DemoMobilityGateway.java) y [perfil](../../services/rides/src/main/resources/application-demo.yml). Las [pruebas existentes](../../services/rides/src/test/java/com/urbanmove/rides/RidesIntegrationTest.java) comprueban reservas, zonas y rollback. Revisar antes de integrar el primer servicio remoto.

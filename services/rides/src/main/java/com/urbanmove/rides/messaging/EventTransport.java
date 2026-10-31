@@ -1,4 +1,4 @@
-package com.urbanmove.rides;
+package com.urbanmove.rides.messaging;
 
 import java.util.UUID;
 

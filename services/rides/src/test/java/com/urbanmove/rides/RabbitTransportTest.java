@@ -1,5 +1,10 @@
 package com.urbanmove.rides;
 
+import com.urbanmove.rides.dto.RideApi;
+import com.urbanmove.rides.messaging.EventTransport;
+import com.urbanmove.rides.messaging.RabbitEvents;
+import com.urbanmove.rides.messaging.outbox.OutboxPublisher;
+import com.urbanmove.rides.service.RideService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

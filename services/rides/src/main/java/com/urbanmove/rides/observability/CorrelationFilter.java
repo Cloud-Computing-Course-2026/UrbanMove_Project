@@ -1,4 +1,4 @@
-package com.urbanmove.rides;
+package com.urbanmove.rides.observability;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

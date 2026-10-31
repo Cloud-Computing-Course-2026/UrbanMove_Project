@@ -12,6 +12,7 @@ Un ADR conserva el contexto, la decisión, sus alternativas y consecuencias. Est
 | [0004](0004-outbox-y-eventos.md) | Outbox transaccional y publicación RabbitMQ al menos una vez | Aceptado (implementado; registro retrospectivo) |
 | [0005](0005-tarifa-conservada-por-viaje.md) | Conservar la tarifa aplicada al iniciar cada viaje | Aceptado (implementado; registro retrospectivo) |
 | [0006](0006-integracion-remota-coordinada.md) | Coordinación persistente para integrar servicios remotos | Propuesto (no implementado) |
+| [0007](0007-organizacion-paquetes.md) | Organización de Viajes por responsabilidad y encapsulación del modelo | Aceptado (implementado) |
 
 ## Cómo mantener el registro
 

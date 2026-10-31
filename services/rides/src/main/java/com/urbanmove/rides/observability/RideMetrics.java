@@ -1,4 +1,4 @@
-package com.urbanmove.rides;
+package com.urbanmove.rides.observability;
 
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;

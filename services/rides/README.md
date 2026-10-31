@@ -8,6 +8,25 @@ La [arquitectura global](../../docs/arquitectura.md) describe los límites actua
 
 Primera iteración **cerrada como demo local el 2026-10-31**. El [registro de cierre](docs/iteracion-1.md) recoge el alcance entregado, las evidencias de verificación y los pendientes. No implica integración con servicios reales ni preparación para producción.
 
+## Estructura del código
+
+`RidesApplication` permanece en `com.urbanmove.rides`, como raíz del escaneo de componentes, entidades y repositorios de Spring Boot. Las clases se distribuyen por responsabilidad:
+
+| Paquete bajo `com.urbanmove.rides` | Clases / responsabilidad |
+| --- | --- |
+| `controller` | `RideController` y `ApiErrors`: HTTP y respuestas de error |
+| `dto` | `RideApi`: peticiones y respuestas de la API |
+| `service` | `RideService`: coordinación, reglas y transacciones |
+| `model` | `Ride`: entidad JPA con campos privados, creación y finalización mediante métodos |
+| `repository` | `RideRepository`: consultas y bloqueo de viajes |
+| `exception` | `DomainException`: errores de negocio |
+| `integration` y `integration.demo` | `MobilityGateway` y `DemoMobilityGateway`: puerto de movilidad y simulación |
+| `messaging` | `EventTransport` y `RabbitEvents`: transporte y configuración RabbitMQ |
+| `messaging.outbox` | `Outbox` y `OutboxPublisher`: almacenamiento y publicación de eventos |
+| `observability` | `CorrelationFilter` y `RideMetrics`: correlación y métricas |
+
+Los recursos siguen en `src/main/resources`: configuración YAML, migraciones en `db/` y bienvenida/contrato en `static/`. Las pruebas de integración permanecen en `src/test/java/com/urbanmove/rides`, porque verifican el servicio completo. Esta distribución no cambia las rutas HTTP, el JSON ni el esquema SQL. Véase [ADR-0007](../../docs/adr/0007-organizacion-paquetes.md).
+
 ## Ejecutar sin Docker
 
 Desde `services/rides`, con un **JDK 21** y acceso a Maven Central en la primera ejecucion:

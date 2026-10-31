@@ -1,5 +1,6 @@
-package com.urbanmove.rides;
+package com.urbanmove.rides.dto;
 
+import com.urbanmove.rides.model.Ride;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -14,10 +15,10 @@ public final class RideApi {
             Ride.VehicleType vehicleType, Ride.Status status, UUID originZoneId, UUID destinationZoneId,
             Instant startedAt, Instant finishedAt, Long durationSeconds, BigDecimal preliminaryCost,
             String currency, BigDecimal unlockFee, BigDecimal pricePerMinute) {
-        static RideResponse from(Ride r) {
-            return new RideResponse(r.id, r.userId, r.vehicleId, r.reservationId, r.vehicleType,
-                    r.status, r.originZoneId, r.destinationZoneId, r.startedAt, r.finishedAt,
-                    r.durationSeconds, r.preliminaryCost, r.currency, r.unlockFee, r.pricePerMinute);
+        public static RideResponse from(Ride r) {
+            return new RideResponse(r.getId(), r.getUserId(), r.getVehicleId(), r.getReservationId(), r.getVehicleType(),
+                    r.getStatus(), r.getOriginZoneId(), r.getDestinationZoneId(), r.getStartedAt(), r.getFinishedAt(),
+                    r.getDurationSeconds(), r.getPreliminaryCost(), r.getCurrency(), r.getUnlockFee(), r.getPricePerMinute());
         }
     }
 }

@@ -1,5 +1,6 @@
-package com.urbanmove.rides;
+package com.urbanmove.rides.repository;
 
+import com.urbanmove.rides.model.Ride;
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
 import java.util.UUID;

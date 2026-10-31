@@ -1,5 +1,11 @@
-package com.urbanmove.rides;
+package com.urbanmove.rides.service;
 
+import com.urbanmove.rides.dto.RideApi;
+import com.urbanmove.rides.exception.DomainException;
+import com.urbanmove.rides.integration.MobilityGateway;
+import com.urbanmove.rides.messaging.outbox.Outbox;
+import com.urbanmove.rides.model.Ride;
+import com.urbanmove.rides.repository.RideRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -49,28 +55,18 @@ public class RideService {
         var previous = rides.findByStartKey(key);
         if (previous.isPresent()) {
             Ride r = previous.get();
-            if (!r.userId.equals(request.userId()) || !r.vehicleId.equals(request.vehicleId())
-                    || !Objects.equals(r.reservationId, request.reservationId())) {
+            if (!r.getUserId().equals(request.userId()) || !r.getVehicleId().equals(request.vehicleId())
+                    || !Objects.equals(r.getReservationId(), request.reservationId())) {
                 throw DomainException.conflict("Idempotency-Key ya utilizada con otros datos");
             }
             return RideApi.RideResponse.from(r);
         }
-        Ride r = new Ride();
-        r.id = UUID.randomUUID();
-        r.userId = request.userId();
-        r.vehicleId = request.vehicleId();
-        r.reservationId = request.reservationId();
-        r.activeVehicleId = r.vehicleId;
-        r.activeUserId = r.userId;
-        r.startedAt = clock.instant().truncatedTo(ChronoUnit.MICROS);
-        var vehicle = mobility.claim(r.id, r.vehicleId, r.userId, r.reservationId, r.startedAt);
-        r.originZoneId = vehicle.originZoneId();
-        r.vehicleType = vehicle.type();
-        r.status = Ride.Status.IN_PROGRESS;
-        r.startKey = key;
-        r.unlockFee = unlockFee;
-        r.pricePerMinute = r.vehicleType == Ride.VehicleType.BICYCLE ? bicycleRate : scooterRate;
-        r.currency = "EUR";
+        UUID id = UUID.randomUUID();
+        var startedAt = clock.instant().truncatedTo(ChronoUnit.MICROS);
+        var vehicle = mobility.claim(id, request.vehicleId(), request.userId(), request.reservationId(), startedAt);
+        var pricePerMinute = vehicle.type() == Ride.VehicleType.BICYCLE ? bicycleRate : scooterRate;
+        Ride r = Ride.start(id, request.userId(), request.vehicleId(), request.reservationId(),
+                startedAt, vehicle.originZoneId(), vehicle.type(), key, unlockFee, pricePerMinute);
         rides.saveAndFlush(r);
         outbox.append("RideStarted", r, correlationId);
         metrics.counter("rides.operations", "operation", "start").increment();
@@ -80,30 +76,24 @@ public class RideService {
     @Transactional
     public RideApi.RideResponse finish(UUID id, RideApi.FinishRequest request, String key, String correlationId) {
         Ride r = rides.findForUpdate(id).orElseThrow(() -> DomainException.notFound("Viaje inexistente"));
-        if (r.status == Ride.Status.FINISHED) {
-            if (key.equals(r.finishKey) && request.destinationZoneId().equals(r.destinationZoneId)) {
+        if (r.getStatus() == Ride.Status.FINISHED) {
+            if (key.equals(r.getFinishKey()) && request.destinationZoneId().equals(r.getDestinationZoneId())) {
                 return RideApi.RideResponse.from(r);
             }
             throw DomainException.conflict("El viaje ya ha finalizado");
         }
         var end = clock.instant().truncatedTo(ChronoUnit.MICROS);
-        if (end.isBefore(r.startedAt)) {
+        if (end.isBefore(r.getStartedAt())) {
             throw DomainException.conflict("El reloj del sistema es anterior al inicio del viaje");
         }
-        mobility.finish(r.id, r.vehicleId, request.destinationZoneId());
-        r.finishedAt = end;
-        r.durationSeconds = Duration.between(r.startedAt, end).getSeconds();
+        mobility.finish(r.getId(), r.getVehicleId(), request.destinationZoneId());
         // Bill started minutes without rounding away fractional seconds, minimum one minute.
-        var elapsed = Duration.between(r.startedAt, end);
+        var elapsed = Duration.between(r.getStartedAt(), end);
         long seconds = elapsed.getSeconds();
         long minutes = Math.max(1, seconds / 60 + (seconds % 60 > 0 || elapsed.getNano() > 0 ? 1 : 0));
-        r.preliminaryCost = r.unlockFee.add(r.pricePerMinute.multiply(BigDecimal.valueOf(minutes)))
+        var preliminaryCost = r.getUnlockFee().add(r.getPricePerMinute().multiply(BigDecimal.valueOf(minutes)))
                 .setScale(2, RoundingMode.HALF_UP);
-        r.destinationZoneId = request.destinationZoneId();
-        r.finishKey = key;
-        r.status = Ride.Status.FINISHED;
-        r.activeUserId = null;
-        r.activeVehicleId = null;
+        r.finish(end, seconds, preliminaryCost, request.destinationZoneId(), key);
         rides.saveAndFlush(r);
         outbox.append("RideFinished", r, correlationId);
         metrics.counter("rides.operations", "operation", "finish").increment();

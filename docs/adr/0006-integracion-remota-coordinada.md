@@ -29,4 +29,4 @@ Habrá consistencia eventual y operaciones en estado intermedio; API, clientes, 
 
 ## Verificación y seguimiento
 
-Punto de partida: [límites de integración del servicio](../../services/rides/README.md#limite-de-integracion-de-esta-iteracion) y [MobilityGateway](../../services/rides/src/main/java/com/urbanmove/rides/MobilityGateway.java). No existe implementación ni verificación de esta propuesta. Resolver los acuerdos pendientes antes de sustituir la demo; registrar la aceptación y actualizar contratos, arquitectura y pruebas con la implementación.
+Punto de partida: [límites de integración del servicio](../../services/rides/README.md#limite-de-integracion-de-esta-iteracion) y [MobilityGateway](../../services/rides/src/main/java/com/urbanmove/rides/integration/MobilityGateway.java). No existe implementación ni verificación de esta propuesta. Resolver los acuerdos pendientes antes de sustituir la demo; registrar la aceptación y actualizar contratos, arquitectura y pruebas con la implementación.

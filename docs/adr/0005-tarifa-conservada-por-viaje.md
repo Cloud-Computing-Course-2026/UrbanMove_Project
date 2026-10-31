@@ -23,4 +23,4 @@ El coste conserva la tarifa original incluso tras un cambio de configuración. L
 
 ## Verificación y seguimiento
 
-Evidencia: [RideService](../../services/rides/src/main/java/com/urbanmove/rides/RideService.java) y [modelo](../../services/rides/src/main/java/com/urbanmove/rides/Ride.java). Las [pruebas existentes](../../services/rides/src/test/java/com/urbanmove/rides/RidesIntegrationTest.java) incluyen conservación de tarifa, mínimo de un minuto y fronteras de fracciones de segundo. Revisar al integrar facturación o modificar reglas tarifarias.
+Evidencia: [RideService](../../services/rides/src/main/java/com/urbanmove/rides/service/RideService.java) y [modelo](../../services/rides/src/main/java/com/urbanmove/rides/model/Ride.java). Las [pruebas existentes](../../services/rides/src/test/java/com/urbanmove/rides/RidesIntegrationTest.java) incluyen conservación de tarifa, mínimo de un minuto y fronteras de fracciones de segundo. Revisar al integrar facturación o modificar reglas tarifarias.
