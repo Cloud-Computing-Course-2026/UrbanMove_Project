@@ -6,7 +6,7 @@ spring:
     name: reservations-service
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/reservations_db}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/urbanmove_reservations}
     username: ${SPRING_DATASOURCE_USERNAME:urbanmove}
     password: ${SPRING_DATASOURCE_PASSWORD:urbanmove_secure_password}
     driver-class-name: org.postgresql.Driver

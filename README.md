@@ -4,7 +4,7 @@ Sistema distribuido de movilidad urbana basado en arquitectura de microservicios
 
 ---
 
-## 🏗️ Estructura del Proyecto
+## 🏗️ Estructura del Monorepo
 
 ```plaintext
 urbanmove/
@@ -15,7 +15,8 @@ urbanmove/
 ├── services/                # Backend Transaccional (Java 17 + Maven)
 │   ├── reservations/        # Microservicio de Gestión de Reservas (Spring Boot 3)
 │   ├── identity/            # Microservicio de Identidad y Autenticación
-│   └── history/             # Microservicio de Histórico de Operaciones
+│   ├── rides/               # Microservicio de Gestión de Viajes
+│   └── ...                  # 15 microservicios con aislamiento total
 ├── lambdas/                 # Procesamiento Asíncrono y Serverless (Python 3 + Boto3)
 │   ├── reservation_expiry/  # Función periódica para liberación de reservas caducadas
 │   ├── lake_ingestion/      # Ingesta de eventos hacia S3 Data Lake (capa raw)
@@ -25,8 +26,11 @@ urbanmove/
 ├── docs/                    # Documentación de arquitectura
 │   ├── c4/                  # Diagramas C4 (Contenedores, Contexto)
 │   └── contracts/           # Contratos OpenAPI y AsyncAPI
+├── scripts/                 # Scripts de utilidad y automatización
+│   └── InitEnv.java         # Generador del archivo .env a partir de .env.example
 ├── docker-compose.yml       # Orquestador local (PostgreSQL, RabbitMQ, MinIO, APIs)
 ├── pom.xml                  # POM padre exclusivo para la carpeta services/
+├── .env.example             # Plantilla de variables de entorno locales
 └── README.md                # Guía unificada de ejecución y desarrollo
 ```
 
@@ -34,8 +38,8 @@ urbanmove/
 
 ## 🔒 Reglas Arquitectónicas Estrictas
 
-1. **Aislamiento de Datos**:
-   - 15 microservicios con **15 bases de datos PostgreSQL independientes**.
+1. **Aislamiento de Datos (Database-per-Service)**:
+   - 15 microservicios con **15 bases de datos PostgreSQL independientes** (`urbanmove_identity`, `urbanmove_reservations`, etc.).
    - Están **estrictamente prohibidos los JOINs** entre bases de datos de distintos microservicios y las escrituras cruzadas.
 2. **Monorepo Híbrido**:
    - `services/`: Java 17 + Maven (Spring Boot 3 transaccional, APIs REST, dominio).
@@ -59,13 +63,19 @@ urbanmove/
    - **Bloqueo Pesimista en JPA**: `findByIdWithLock(vehicleId)` ejecuta `SELECT ... FOR UPDATE`, serializando las peticiones sobre el mismo recurso.
    - **Índice Único Parcial Físico (PostgreSQL)**:
      ```sql
-     CREATE UNIQUE INDEX uq_active_reservation_vehicle 
-     ON reservations (vehicle_id) 
-     WHERE status = 'RESERVED';
+     CREATE UNIQUE INDEX uq_active_reservation_resource 
+     ON reservations (resource_id) 
+     WHERE status = 'PENDING';
+     ```
+   - **Criterio de Usuario Único Activo**:
+     ```sql
+     CREATE UNIQUE INDEX uq_active_user_reservation 
+     ON reservations (user_id) 
+     WHERE status = 'PENDING';
      ```
    - Garantiza que solicitudes simultáneas sobre el mismo vehículo otorgan la reserva a **un único cliente** y rechazan las demás con `409 Conflict`.
 
-### Endpoints REST
+### Endpoints REST (Puerto 8106)
 
 | Método | Endpoint | Descripción |
 | :--- | :--- | :--- |
@@ -86,16 +96,22 @@ urbanmove/
 
 ## 🚀 Despliegue y Ejecución Local
 
-### 1. Iniciar Infraestructura con Docker Compose
+### 1. Variables de Entorno
+Copia el archivo de variables de entorno de ejemplo antes de levantar los contenedores:
+```bash
+cp .env.example .env
+```
+
+### 2. Iniciar Infraestructura con Docker Compose
 ```bash
 docker compose up -d
 ```
-Esto levantará:
-- **PostgreSQL 16**: Inicializa automáticamente las 15 bases de datos aisladas (`reservations_db`, `identity_db`, etc.) definidas en `infra/init.sql`.
-- **RabbitMQ**: Broker AMQP con panel web en [http://localhost:15672](http://localhost:15672) (Usuario/Clave: `urbanmove` / `urbanmove_broker_pass`).
-- **MinIO**: S3 local con consola en [http://localhost:9001](http://localhost:9001) (Usuario/Clave: `minioadmin` / `minioadminpassword`).
-- **Reservations Service**: API de reservas expuesta en [http://localhost:8082](http://localhost:8082).
+Esto levantará de forma orquestada:
+- **PostgreSQL 16** (`:5432`): Inicializa automáticamente las 15 bases de datos aisladas (`urbanmove_identity`, `urbanmove_reservations`, etc.) definidas en `infra/init.sql`.
+- **RabbitMQ** (`:5672` y `:15672`): Broker AMQP con panel web en [http://localhost:15672](http://localhost:15672) (Usuario/Clave: `urbanmove` / `urbanmove_broker_pass`).
+- **MinIO** (`:9000` y `:9001`): S3 local con consola web en [http://localhost:9001](http://localhost:9001) (Usuario/Clave: `minioadmin` / `minioadminpassword`) y creación automática del bucket `urbanmove-lake` con capas `raw/`, `trusted/` y `curated/`.
+- **Reservations Service** (`:8106`): API de reservas expuesta en [http://localhost:8106](http://localhost:8106).
 
-### 2. Swagger UI / Documentación OpenAPI
+### 3. Swagger UI / Documentación OpenAPI
 Accede a la documentación interactiva en:
-[http://localhost:8082/swagger-ui.html](http://localhost:8082/swagger-ui.html)
+[http://localhost:8106/swagger-ui.html](http://localhost:8106/swagger-ui.html)
